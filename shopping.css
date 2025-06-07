@@ -132,19 +132,25 @@ nav a:hover {
 }
 
 .babo {
-  display: grid;
-  padding: 20px;
-  gap: 10px;
-  margin: 100px;
-  margin-left: 200px;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 40px;
+  gap: 25px;
+  margin: 30px;
+  margin-left: 60px;
+  /* grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); */
+  width: 85%;
 }
 
 .babo-1 {
-  width: 350px;
+  width: 300px;
   height: 400px;
   padding-bottom: 20px;
   justify-content: center;
+  /* padding-left: 20px; */
+  /* gap: 30px; */
 }
 .section-1 {
   z-index: -1000;
@@ -344,11 +350,12 @@ img {
 }
 .go-2 {
   padding: 20px;
-  margin: 80px;
+  margin: 60px;
+  margin-left: -20px;
   gap: 60px;
   display: grid;
   text-align: center;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
 
 .brownie-1 {

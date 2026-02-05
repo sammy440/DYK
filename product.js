@@ -1,167 +1,107 @@
 "use strict";
-// Cart functionality
-let cart = JSON.parse(localStorage.getItem("cart")) || []; // Load cart from localStorage
-let cartTotal = calculateCartTotal(); // Calculate initial cart total
 
-const modal = document.querySelector("#cart");
-const overlay = document.querySelector(".overlay");
-const btnShowModal = document.querySelector(".btn--show-modal");
-const cartTotalElement = document.querySelector(".cart-total");
-const cartItemsList = document.querySelector(".cart-items");
-
-// Calculate cart total
-function calculateCartTotal() {
-  return cart.reduce((total, item) => total + item.price * item.quantity, 0);
-}
-
-// Save cart to localStorage
-function saveCart() {
-  localStorage.setItem("cart", JSON.stringify(cart));
-}
-
-// Show cart modal
-const openModal = function (e) {
-  e.preventDefault();
-  modal.classList.remove("hidden");
-  overlay.classList.remove("hidden");
+const products = {
+    1: { id: 1, name: "DYK Yellow Shoes", price: 200, image: "shoe.jpg" },
+    2: { id: 2, name: "DYK Red Shoes", price: 150, image: "heel.jpg" },
+    3: { id: 3, name: "Dark Brown Jeans", price: 120, image: "panttii.jpg" },
+    4: { id: 4, name: "Brown Trousers", price: 200, image: "dahh.jpg" },
+    5: { id: 5, name: "Sleek Black Jacket", price: 250, image: "jacket.jpg" },
+    6: { id: 6, name: "Red Sunglass", price: 100, image: "red-glass.jpg" },
+    7: { id: 7, name: "Dark Leather Purse", price: 100, image: "accessory-fashion-shopping-woman-purse.jpg" },
+    8: { id: 8, name: "Light Brown Purse", price: 120, image: "bagg.jpg" },
+    9: { id: 9, name: "Bangle Bracelet", price: 130, image: "expand.jpg" },
+    11: { id: 11, name: "Bangle", price: 150, image: "shoe.jpg" }
 };
 
-// Hide cart modal
-const closeModal = function () {
-  modal.classList.add("hidden");
-  overlay.classList.add("hidden");
-};
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-// Initialize cart display
-updateCartDisplay();
-cartTotalElement.textContent = `$${cartTotal.toFixed(2)}`;
+function toggleCart() {
+    const modal = document.getElementById('cartModal');
+    modal.classList.toggle('active');
+}
 
-// Event listeners for modal
-btnShowModal.addEventListener("click", openModal);
-overlay.addEventListener("click", closeModal);
+function addToCart(id) {
+    if (!products[id]) {
+        console.error(`Product ${id} not found`);
+        return;
+    }
 
-document.addEventListener("keydown", function (e) {
-  if (e.key === "Escape" && !modal.classList.contains("hidden")) {
-    closeModal();
-  }
-});
+    const product = products[id];
+    const existingItem = cart.find(item => item.id === id);
 
-// Add to cart functionality
-document.querySelector(".add-to-cart").addEventListener("click", function (e) {
-  e.preventDefault();
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            quantity: 1
+        });
+    }
 
-  // Get product details
-  const productName = document.querySelector(".para-2").textContent;
-  const productPrice = document
-    .querySelector(".para-3")
-    .textContent.split("$")[1]
-    .split(" ")[0];
-  const quantity =
-    parseInt(document.querySelector('input[type="number"]').value) || 1;
+    saveCart();
+    updateCart();
+    showNotification(`${product.name} added to cart!`);
+}
 
-  // Check if item already exists in cart
-  const existingItemIndex = cart.findIndex((item) => item.name === productName);
+function removeFromCart(id) {
+    cart = cart.filter(item => item.id !== id);
+    saveCart();
+    updateCart();
+}
 
-  if (existingItemIndex !== -1) {
-    // Update quantity if item exists
-    cart[existingItemIndex].quantity += quantity;
-  } else {
-    // Create new cart item if it doesn't exist
-    const cartItem = {
-      name: productName,
-      price: parseFloat(productPrice),
-      quantity: quantity,
-    };
-    cart.push(cartItem);
-  }
+function updateCart() {
+    const cartList = document.getElementById('cartItemsList');
+    const cartTotal = document.getElementById('cartTotal');
+    const cartCount = document.getElementById('cartCount');
 
-  // Update cart total
-  cartTotal = calculateCartTotal();
-  cartTotalElement.textContent = `$${cartTotal.toFixed(2)}`;
-  document.querySelector("#cart-total").innerHTML = `$${cartTotal.toFixed(2)}`;
+    cartList.innerHTML = '';
 
-  // Save to localStorage
-  saveCart();
+    if (cart.length === 0) {
+        cartList.innerHTML = '<li style="padding: 1rem; text-align: center; color: #7f8c8d;">Your cart is empty</li>';
+        cartTotal.textContent = 'Total: $0.00';
+        cartCount.textContent = '0';
+        return;
+    }
 
-  // Update cart display
-  updateCartDisplay();
-
-  // Show cart modal
-  // openModal(e);
-  const prompt = document.querySelector(".prompt");
-  prompt.classList.remove("hidden");
-  setTimeout(() => prompt.classList.add("show"), 10);
-
-  // Auto-hide after 3 seconds
-  setTimeout(() => {
-    prompt.classList.remove("show");
-    setTimeout(() => prompt.classList.add("hidden"), 300);
-  }, 3000);
-
-  // Add close button functionality
-  document.querySelector(".close-prompt").addEventListener("click", () => {
-    prompt.classList.remove("show");
-    setTimeout(() => prompt.classList.add("hidden"), 300);
-  });
-});
-
-// Update cart display
-function updateCartDisplay() {
-  cartItemsList.innerHTML = "";
-  const cartItems = document.querySelector(".cart-items");
-  const cartTotal = document.querySelector(".cart-total");
-  const cartBtn = document.querySelector("#cart-btn");
-  cartBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    document.querySelector("#cart").classList.remove("hidden");
-    document.querySelector(".overlay").classList.remove("hidden");
-  });
-  cart.forEach((item, index) => {
-    const li = document.createElement("li");
-    li.classList.add("cart-item");
-    li.innerHTML = `
-      <div class="cart-item-details">
-        <h3>${item.name}</h3>
-        <p>Quantity: ${item.quantity}</p>
-        <p>Price: $${(item.price * item.quantity).toFixed(2)}</p>
-      </div>
-      <button class="remove-item" data-index="${index}">×</button>
-    `;
-    cartItemsList.appendChild(li);
-  });
-
-  // Add event listeners to remove buttons
-  document.querySelectorAll(".remove-item").forEach((button) => {
-    button.addEventListener("click", function () {
-      const index = parseInt(this.dataset.index);
-      removeFromCart(index);
+    let total = 0;
+    cart.forEach(item => {
+        total += item.price * item.quantity;
+        const li = document.createElement('li');
+        li.classList.add('cart-item');
+        li.innerHTML = `
+            <img src="${item.image}" alt="${item.name}">
+            <div class="cart-item-info">
+                <h4>${item.name}</h4>
+                <p>$${item.price.toFixed(2)} x ${item.quantity}</p>
+                <p style="font-weight: 700;">Subtotal: $${(item.price * item.quantity).toFixed(2)}</p>
+            </div>
+            <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
+        `;
+        cartList.appendChild(li);
     });
-  });
+
+    cartTotal.textContent = `Total: $${total.toFixed(2)}`;
+    cartCount.textContent = cart.length;
 }
 
-// Remove item from cart
-function removeFromCart(index) {
-  const item = cart[index];
-  cart.splice(index, 1);
-
-  // Update cart total
-  cartTotal = calculateCartTotal();
-  cartTotalElement.textContent = `$${cartTotal.toFixed(2)}`;
-  document.querySelector("#cart-total").innerHTML = `$${cartTotal.toFixed(2)}`;
-
-  // Save to localStorage
-  saveCart();
-
-  // Update cart display
-  updateCartDisplay();
-
-  if (cart.length === 0) {
-    closeModal();
-  }
+function saveCart() {
+    localStorage.setItem('cart', JSON.stringify(cart));
 }
 
-///////////////////////////////////////////
-document.querySelector(".btn-show-modal").addEventListener("click", (e) => {
-  e.preventDefault();
-  document.querySelector(".dop-container").classList.toggle("jaz");
+function showNotification(message) {
+    const prompt = document.getElementById('prompt');
+    prompt.textContent = message;
+    prompt.classList.add('show');
+    setTimeout(() => {
+        prompt.classList.remove('show');
+    }, 3000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateCart();
 });
+
+
